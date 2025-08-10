@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 // 定义搜索引擎类型
-type SearchEngine = 'baidu' | 'bing' | 'google' | 'yandex';
+type SearchEngine = 'baidu' | 'bing' | 'google' | 'yandex' | 'doubao' | 'tongyi';
 
 // 搜索引擎配置
   const searchEngines = {
@@ -18,6 +18,18 @@ type SearchEngine = 'baidu' | 'bing' | 'google' | 'yandex';
     param: 'text',
     color: 'from-red-500 to-pink-500'
   },
+  doubao: {
+    name: '豆包',
+    url: 'https://www.doubao.com/chat/',
+    param: 'q',
+    color: 'from-green-500 to-teal-500'
+  },
+  tongyi: {
+    name: '通义千问',
+    url: 'https://www.tongyi.com/',
+    param: 'q',
+    color: 'from-purple-500 to-indigo-500'
+  },
   google: {
     name: '谷歌',
     url: 'https://www.google.com/search',
@@ -28,7 +40,7 @@ type SearchEngine = 'baidu' | 'bing' | 'google' | 'yandex';
     name: '百度',
     url: 'https://www.baidu.com/s',
     param: 'wd',
-    color: 'from-blue-500 to-blue-600'
+  color: 'from-blue-500 to-blue-600'
   }
 }
 
@@ -39,6 +51,7 @@ export default function Home() {
   const [isFocused, setIsFocused] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState('morning');
+  const [showUpdateLog, setShowUpdateLog] = useState(false);
 
   // 根据时间设置问候语
   useEffect(() => {
@@ -159,17 +172,22 @@ export default function Home() {
                        {Object.entries(searchEngines).map(([key, engine]) => (
                          <button
                            key={key}
-                           onClick={() => {
-                             setSelectedEngine(key as SearchEngine);
-                             setShowDropdown(false);
-                           }}
+                            onClick={() => {
+                               if (key === 'doubao' || key === 'tongyi') {
+                                // 直接跳转到豆包搜索页面
+                                window.open(engine.url, '_blank');
+                              } else {
+                                setSelectedEngine(key as SearchEngine);
+                                setShowDropdown(false);
+                              }
+                            }}
                             className={`flex items-center space-x-3 px-3 py-2 w-full text-left transition-all text-sm ${
                               selectedEngine === key 
                                 ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium' 
                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300'
                              } ${key === 'baidu' ? 'opacity-50' : key === 'google' ? 'opacity-70' : ''}`}
                           >
-                                <span className="whitespace-nowrap">{engine.name}{key === 'baidu' && <span className="text-gray-400 text-xs ml-1">(垃圾过多，极不推荐)</span>}{key === 'google' && <span className="text-gray-400 text-xs ml-1">(可能打不开)</span>}</span>
+                         <span className="whitespace-nowrap">{engine.name}{key === 'baidu' && <span className="text-gray-400 text-xs ml-1">(垃圾过多，极不推荐)</span>}{key === 'google' && <span className="text-gray-400 text-xs ml-1">(可能打不开)</span>}{key === 'doubao' && <span className="text-gray-400 text-xs ml-1">(直接跳转)</span>}{key === 'tongyi' && <span className="text-gray-400 text-xs ml-1">(直接跳转)</span>}</span>
                           </button>
                        ))}
                     </div>
@@ -203,6 +221,59 @@ placeholder="请输入搜索内容，按回车或点击搜索按钮..."
           </form>
         </div>
       </main>
+
+      {/* 更新日志按钮 */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button 
+          onClick={() => setShowUpdateLog(true)}
+          className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          aria-label="查看更新日志"
+        >
+          <i className="fa-solid fa-history"></i>
+        </button>
+      </div>
+
+      {/* 更新日志弹窗 */}
+      {showUpdateLog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-in zoom-in-95 duration-300">
+            <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">更新日志</h3>
+              <button 
+                onClick={() => setShowUpdateLog(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                aria-label="关闭"
+              >
+                <i className="fa-solid fa-times text-lg"></i>
+              </button>
+            </div>
+            <div className="p-5 space-y-6">
+              <div className="border-l-4 border-blue-500 pl-4 py-1">
+                <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.10 更新 v1.1</h4>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
+                  <li>新增豆包、千问搜索</li>
+                  <li>修复已知问题</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-gray-300 pl-4 py-1">
+                <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.6 发布 v1.0</h4>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
+                  <li>网站上线啦，支持搜索哦</li>
+                </ul>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end">
+              <button 
+                onClick={() => setShowUpdateLog(false)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                我知道了
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 页脚 */}
       <footer className="py-4 text-center text-gray-500 dark:text-gray-400 text-sm relative z-10">

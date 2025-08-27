@@ -222,16 +222,29 @@ placeholder="请输入搜索内容，按回车或点击搜索按钮..."
         </div>
       </main>
 
-      {/* 更新日志按钮 */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button 
-          onClick={() => setShowUpdateLog(true)}
-          className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          aria-label="查看更新日志"
-        >
-          <i className="fa-solid fa-history"></i>
-        </button>
-      </div>
+ {/* 纸飞机跳转按钮 */}
+  <div className="fixed bottom-24 right-6 z-40">
+  <a 
+    href="https://lyjy.netlify.app" 
+    target="_blank" 
+    rel="noopener noreferrer"
+     className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+    aria-label="访问lyjy网站"
+  >
+    <i className="fa-solid fa-paper-plane"></i>
+  </a>
+</div>
+
+{/* 更新日志按钮 */}
+<div className="fixed bottom-6 right-6 z-40">
+  <button 
+    onClick={() => setShowUpdateLog(true)}
+    className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+    aria-label="查看更新日志"
+  >
+    <i className="fa-solid fa-history"></i>
+  </button>
+</div>
 
       {/* 更新日志弹窗 */}
       {showUpdateLog && (
@@ -249,6 +262,13 @@ placeholder="请输入搜索内容，按回车或点击搜索按钮..."
             </div>
             <div className="p-5 space-y-6">
               <div className="border-l-4 border-blue-500 pl-4 py-1">
+                <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.27 更新 v1.2</h4>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
+                  <li>修复了一些已知问题</li>
+                </ul>
+              </div>
+              
+               <div className="border-l-4 border-gray-300 pl-4 py-1">
                 <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.10 更新 v1.1</h4>
                 <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
                   <li>新增豆包、千问搜索</li>

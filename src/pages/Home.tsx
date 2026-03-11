@@ -201,7 +201,7 @@ export default function Home() {
 
   // 10秒后自动隐藏提示（如果用户没有点击时间）
   useEffect(() => {
-    let autoHideTimer: NodeJS.Timeout;
+    let autoHideTimer: ReturnType<typeof setTimeout>;
     if (showTimeHint) {
       autoHideTimer = setTimeout(() => {
         setShowTimeHint(false);

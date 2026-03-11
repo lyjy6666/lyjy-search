@@ -1,5 +1,5 @@
+import React from 'react';
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
 import { motion } from 'framer-motion';
 type SearchEngine = "baidu" | "bing" | "google" | "yandex" | "doubao" | "tongyi";
 type Category = 'news' | 'shopping' | 'entertainment' | 'tools' | 'design' | 'dev' | 'games';
@@ -76,6 +76,10 @@ const folders: Folder[] = [
       { id: 'zhihu', name: '知乎', url: 'https://zhihu.com', icon: 'fa-question-circle', color: '#0066FF' },
       { id: 'toutiao', name: '头条', url: 'https://www.toutiao.com', icon: 'fa-fire', color: '#FF6700' },
       { id: 'tieba', name: '贴吧', url: 'https://tieba.baidu.com', icon: 'fa-comments', color: '#00A0E9' },
+      { id: '163', name: '网易新闻', url: 'https://news.163.com', icon: 'fa-newspaper', color: '#D81B60' },
+      { id: 'sina', name: '新浪新闻', url: 'https://news.sina.com.cn', icon: 'fa-rss', color: '#D32F2F' },
+      { id: '36kr', name: '36氪', url: 'https://36kr.com', icon: 'fa-chart-line', color: '#2196F3' },
+      { id: 'huxiu', name: '虎嗅', url: 'https://www.huxiu.com', icon: 'fa-lightbulb', color: '#FF9800' },
     ]
   },
   {
@@ -87,6 +91,10 @@ const folders: Folder[] = [
       { id: 'jd', name: '京东', url: 'https://www.jd.com', icon: 'fa-shopping-basket', color: '#E1251B' },
       { id: 'pdd', name: '拼多多', url: 'https://www.pinduoduo.com', icon: 'fa-tag', color: '#E02E24' },
       { id: 'suning', name: '苏宁', url: 'https://www.suning.com', icon: 'fa-thumbs-up', color: '#E40000' },
+      { id: 'tmall', name: '天猫', url: 'https://www.tmall.com', icon: 'fa-star', color: '#FF0036' },
+      { id: 'vip', name: '唯品会', url: 'https://www.vip.com', icon: 'fa-gem', color: '#FF69B4' },
+      { id: 'amazon', name: '亚马逊', url: 'https://www.amazon.cn', icon: 'fa-amazon', color: '#FF9900' },
+      { id: 'dianping', name: '大众点评', url: 'https://www.dianping.com', icon: 'fa-utensils', color: '#F37021' },
     ]
   },
   {
@@ -98,6 +106,10 @@ const folders: Folder[] = [
       { id: 'youku', name: '优酷', url: 'https://www.youku.com', icon: 'fa-video', color: '#FF6700' },
       { id: 'qqmusic', name: 'QQ音乐', url: 'https://y.qq.com', icon: 'fa-music', color: '#12B7F5' },
       { id: 'netease', name: '网易云', url: 'https://music.163.com', icon: 'fa-cloud', color: '#C20C0C' },
+      { id: 'kugou', name: '酷狗', url: 'https://www.kugou.com', icon: 'fa-headphones', color: '#2BA1F7' },
+      { id: 'kuwo', name: '酷我', url: 'https://www.kuwo.cn', icon: 'fa-compact-disc', color: '#FF69B4' },
+      { id: 'douyu', name: '斗鱼', url: 'https://www.douyu.com', icon: 'fa-fish', color: '#FF5E00' },
+      { id: 'huya', name: '虎牙', url: 'https://www.huya.com', icon: 'fa-paw', color: '#FB7299' },
     ]
   },
   {
@@ -109,6 +121,12 @@ const folders: Folder[] = [
       { id: 'calculator', name: '计算器', url: 'https://www.calculator.net', icon: 'fa-calculator', color: '#34A853' },
       { id: 'calendar', name: '日历', url: 'https://calendar.google.com', icon: 'fa-calendar-alt', color: '#FBBC04' },
       { id: 'notion', name: '笔记', url: 'https://www.notion.so', icon: 'fa-sticky-note', color: '#2E2E2E' },
+      { id: 'wenku', name: '文库', url: 'https://wenku.baidu.com', icon: 'fa-book-open', color: '#FF6600' },
+      { id: 'pdf', name: 'PDF转换', url: 'https://www.ilovepdf.com', icon: 'fa-file-pdf', color: '#E91E63' },
+      { id: 'color', name: '取色器', url: 'https://colorhunt.co', icon: 'fa-palette', color: '#FF5722' },
+      { id: 'json', name: 'JSON格式化', url: 'https://www.json.cn', icon: 'fa-code', color: '#00BCD4' },
+      { id: 'base64', name: 'Base64', url: 'https://www.base64decode.org', icon: 'fa-hashtag', color: '#795548' },
+      { id: 'image', name: '图片压缩', url: 'https://tinypng.com', icon: 'fa-compress', color: '#00E676' },
     ]
   },
   {
@@ -120,6 +138,10 @@ const folders: Folder[] = [
       { id: 'behance', name: 'Behance', url: 'https://www.behance.net', icon: 'fa-behance', color: '#053EFF' },
       { id: 'dribbble', name: 'Dribbble', url: 'https://dribbble.com', icon: 'fa-dribbble', color: '#EA4C89' },
       { id: 'canva', name: 'Canva', url: 'https://www.canva.com', icon: 'fa-heart', color: '#00C4CC' },
+      { id: 'pinterest', name: 'Pinterest', url: 'https://www.pinterest.com', icon: 'fa-pinterest', color: '#E60023' },
+      { id: 'adobe', name: 'Adobe', url: 'https://www.adobe.com', icon: 'fa-pen-nib', color: '#FF0000' },
+      { id: 'unsplash', name: 'Unsplash', url: 'https://unsplash.com', icon: 'fa-camera', color: '#000000' },
+      { id: 'iconfont', name: 'Iconfont', url: 'https://www.iconfont.cn', icon: 'fa-icons', color: '#FF3366' },
     ]
   },
   {
@@ -131,6 +153,12 @@ const folders: Folder[] = [
       { id: 'stackoverflow', name: 'StackOverflow', url: 'https://stackoverflow.com', icon: 'fa-stack-overflow', color: '#F58025' },
       { id: 'mdn', name: 'MDN', url: 'https://developer.mozilla.org', icon: 'fa-book', color: '#3C4146' },
       { id: 'npm', name: 'NPM', url: 'https://www.npmjs.com', icon: 'fa-box', color: '#CB3837' },
+      { id: 'gitlab', name: 'GitLab', url: 'https://about.gitlab.com', icon: 'fa-gitlab', color: '#FC6D26' },
+      { id: 'v2ex', name: 'V2EX', url: 'https://www.v2ex.com', icon: 'fa-users', color: '#FFFFFF' },
+      { id: 'segmentfault', name: '思否', url: 'https://segmentfault.com', icon: 'fa-layer-group', color: '#00A3E0' },
+      { id: 'juejin', name: '掘金', url: 'https://juejin.cn', icon: 'fa-compass', color: '#1E80FF' },
+      { id: 'codepen', name: 'CodePen', url: 'https://codepen.io', icon: 'fa-codepen', color: '#000000' },
+      { id: 'typescript', name: 'TypeScript', url: 'https://www.typescriptlang.org', icon: 'fa-file-code', color: '#3178C6' },
     ]
   },
   {
@@ -142,6 +170,10 @@ const folders: Folder[] = [
       { id: 'epic', name: 'Epic', url: 'https://www.epicgames.com', icon: 'fa-gamepad', color: '#2A2A2A' },
       { id: 'battlenet', name: '暴雪', url: 'https://www.blizzard.com', icon: 'fa-snowflake', color: '#00AEFF' },
       { id: 'riot', name: 'Riot', url: 'https://www.riotgames.com', icon: 'fa-trophy', color: '#E94B3C' },
+      { id: 'taptap', name: 'TapTap', url: 'https://www.taptap.cn', icon: 'fa-mobile-alt', color: '#FF5722' },
+      { id: 'gog', name: 'GOG', url: 'https://www.gog.com', icon: 'fa-star', color: '#86328A' },
+      { id: 'itch', name: 'itch.io', url: 'https://itch.io', icon: 'fa-gamepad', color: '#FA5C5C' },
+      { id: 'origin', name: 'Origin', url: 'https://www.origin.com', icon: 'fa-play', color: '#F56C2C' },
     ]
   }
 ];
@@ -156,22 +188,49 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showAppGrid, setShowAppGrid] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Category[]>([]);
+  const [appSearchQuery, setAppSearchQuery] = useState("");
+  const [showTimeHint, setShowTimeHint] = useState(false);
+
+  // 3秒后显示时间提示
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTimeHint(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 10秒后自动隐藏提示（如果用户没有点击时间）
+  useEffect(() => {
+    let autoHideTimer: NodeJS.Timeout;
+    if (showTimeHint) {
+      autoHideTimer = setTimeout(() => {
+        setShowTimeHint(false);
+      }, 10000);
+    }
+    return () => {
+      if (autoHideTimer) {
+        clearTimeout(autoHideTimer);
+      }
+    };
+  }, [showTimeHint]);
 
   // 处理时间点击
   const handleTimeClick = () => {
     setShowAppGrid(!showAppGrid);
+    setShowTimeHint(false); // 点击时间后隐藏提示
     // 点击时间时重置展开的文件夹
     if (!showAppGrid) {
       setExpandedFolders([]);
+      setAppSearchQuery("");
     }
   };
 
-  // 切换文件夹展开状态
+  // 切换文件夹展开状态（单选模式）
   const toggleFolder = (folderId: Category) => {
-    setExpandedFolders(prev => 
+    setExpandedFolders(prev =>
       prev.includes(folderId)
-        ? prev.filter(id => id !== folderId)
-        : [...prev, folderId]
+        ? [] // 如果已展开，则关闭所有
+        : [folderId] // 否则只展开这一个
     );
   };
 
@@ -179,6 +238,18 @@ export default function Home() {
   const handleAppClick = (url: string) => {
     window.open(url, "_blank");
   };
+
+  // 过滤文件夹和应用
+  const filteredFolders = folders.filter(folder => {
+    if (!appSearchQuery.trim()) return true;
+    const searchLower = appSearchQuery.toLowerCase();
+    // 搜索文件夹名称
+    if (folder.name.toLowerCase().includes(searchLower)) return true;
+    // 搜索文件夹内的应用
+    return folder.apps.some(app =>
+      app.name.toLowerCase().includes(searchLower)
+    );
+  });
 
 
     useEffect(() => {
@@ -245,59 +316,111 @@ export default function Home() {
             {}
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <div
-                    className={`absolute inset-0 bg-gradient-to-br ${searchEngines[selectedEngine].color} opacity-10`}></div>
-                <div
-                    className="absolute inset-0 bg-[url('https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Snow-capped+mountain+peak+at+sunrise%2C+clear+blue+sky%2C+majestic+landscape&sign=6e818082c15abe2b5f071192f49da26f')] bg-cover bg-center opacity-20"
+                    className="absolute inset-0 bg-[url('https://coze-coding-project.tos.coze.site/coze_storage_7603202760753872959/image/generate_image_e1c63e9a-52b1-4720-a583-0dcee9b6728f.jpeg?sign=1804772530-8e5692a888-0-d85c70ce4b7715d716a4a54d83d85a18270642ea1b58aad935817558a6a46fdf')] bg-cover bg-center opacity-70"
                     aria-hidden="true"></div>
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.6) 100%)'
+                    }}
+                ></div>
             </div>
             {}
             <main
                 className="flex-1 flex flex-col items-center justify-center relative z-10 px-4 py-8">
                 {}
                 <style>{`
-            @keyframes colorChange {
-              0% { color: #ff6b6b; }
-              20% { color: #4ecdc4; }
-              40% { color: #45b7d1; }
-              60% { color: #967adc; }
-              80% { color: #ffd166; }
-              100% { color: #ff6b6b; }
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 8px;
             }
-            .color-animate span {
-              display: inline-block;
-              animation: colorChange 5s infinite;
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: rgba(255, 255, 255, 0.05);
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: rgba(255, 255, 255, 0.3);
             }
           `}</style>
                 <h2
-                    className="text-[clamp(1.5rem,5vw,2.5rem)] font-medium mb-2 color-animate">
-                    {[..."lyjy的搜索起始页~"].map((char, index) => <span
-                        key={index}
-                        style={{
-                            animationDelay: `${index * 0.1}s`
-                        }}>
-                        {char}
-                    </span>)}
-                </h2>
-                 <motion.p
-                    className="text-[clamp(1rem,2vw,1.25rem)] text-white mb-4 cursor-pointer"
+                    className="text-[clamp(2rem,6vw,4rem)] font-medium mb-0.5 drop-shadow-lg text-white"
                     style={{
-                        fontSize: "72px"
-                    }}
-                    onClick={handleTimeClick}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    {currentTime.toLocaleTimeString("zh-CN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit"
-                    })}
-                </motion.p>
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)"
+                    }}>
+                    lyjy的搜索起始页~
+                </h2>
+                <div className="flex items-center gap-4 mb-1">
+                    <motion.p
+                        className={`text-[clamp(1rem,2vw,1.25rem)] text-white cursor-pointer drop-shadow-lg relative ${showTimeHint ? 'animate-pulse' : ''}`}
+                        style={{
+                            fontSize: "72px",
+                            textShadow: showTimeHint 
+                                ? "0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6), 3px 3px 6px rgba(0, 0, 0, 0.9)"
+                                : "3px 3px 6px rgba(0, 0, 0, 0.9)"
+                        }}
+                        onClick={handleTimeClick}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        {currentTime.toLocaleTimeString("zh-CN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit"
+                        })}
+                    </motion.p>
+                    {showTimeHint && (
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="relative inline-flex items-center justify-center px-2 py-1 z-50"
+                        >
+                            <svg
+                                className="absolute inset-0 -left-1 -top-1 -right-1 -bottom-1"
+                                width="220"
+                                height="80"
+                                viewBox="0 0 220 80"
+                            >
+                                <motion.ellipse
+                                    cx="95"
+                                    cy="32"
+                                    rx="85"
+                                    ry="28"
+                                    fill="none"
+                                    stroke="white"
+                                    strokeWidth="3"
+                                    initial={{ pathLength: 0, opacity: 0 }}
+                                    animate={{ pathLength: 1, opacity: 1 }}
+                                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                                />
+                            </svg>
+                            <span
+                                className="text-white text-lg font-medium drop-shadow-lg whitespace-nowrap relative z-10"
+                                style={{
+                                    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.9)",
+                                    marginLeft: "12px",
+                                    marginTop: "8px"
+                                }}
+                            >
+                                👆 点击时间试试
+                            </span>
+                        </motion.div>
+                    )}
+                </div>
                 <h1
-                    className="text-[clamp(2rem,5vw,3.5rem)] font-bold text-white mb-2 tracking-tight">
+                    className="text-[clamp(2rem,5vw,3.5rem)] font-bold text-white mb-0.5 tracking-tight drop-shadow-lg"
+                    style={{
+                        textShadow: "3px 3px 6px rgba(0, 0, 0, 0.9)"
+                    }}>
                     {getGreeting()}
                 </h1>
-                <p className="text-[clamp(1rem,2vw,1.25rem)] text-white mb-8">今天是 {new Date().toLocaleDateString("zh-CN", {
+                <p
+                    className="text-[clamp(1rem,2vw,1.25rem)] text-white mb-1.5 drop-shadow-lg"
+                    style={{
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.9)"
+                    }}>今天是 {new Date().toLocaleDateString("zh-CN", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",
@@ -353,8 +476,9 @@ export default function Home() {
                                 placeholder="请输入搜索内容，按回车或点击搜索按钮..."
                                 className="w-full pl-24 pr-20 py-4 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-300 text-gray-800 dark:text-white"
                                 style={{
-                                    ringColor: selectedEngine === "bing" ? "#2563eb" : "#ff3333"
-                                }} />
+                                    '--tw-ring-color': selectedEngine === "bing" ? "rgba(37, 99, 235, 0.5)" : "rgba(255, 51, 51, 0.5)"
+                                } as React.CSSProperties}
+                            />
                             <button
                                 type="submit"
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300"
@@ -404,6 +528,13 @@ export default function Home() {
                     </div>
                     <div className="p-5 space-y-6">
                         <div className="border-l-4 border-blue-500 pl-4 py-1">
+                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2026.3.11 更新 V2.1</h4>
+                            <ul
+                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
+                                <li>优化了一下动画，增加了一些功能</li>
+                            </ul>
+                        </div>
+                        <div className="border-l-4 border-gray-300 pl-4 py-1">
                             <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2026.1.29 更新 V2.0</h4>
                             <ul
                                 className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
@@ -450,98 +581,235 @@ export default function Home() {
 
             {/* 应用网格菜单 */}
             {showAppGrid && (
-                <motion.div 
-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+                <motion.div
+                    className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 flex items-center justify-center p-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                 >
-                    <motion.div 
-                        className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 w-full max-w-6xl max-h-[80vh] overflow-y-auto shadow-2xl"
+                    <motion.div
+                        className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-3xl p-6 w-full max-w-7xl max-h-[85vh] overflow-hidden shadow-2xl border border-white/10"
                         initial={{ y: 50, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.1 }}
                     >
-                        {/* 关闭按钮 */}
-                        <div className="flex justify-end mb-6">
+                        {/* 顶部栏 */}
+                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                <motion.i
+                                    className="fa-solid fa-grid-2 text-blue-400"
+                                    animate={{ rotate: [0, 360] }}
+                                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                                ></motion.i>
+                                <span>常用应用</span>
+                            </h2>
                             <motion.button
                                 onClick={() => setShowAppGrid(false)}
-                                className="text-white hover:text-gray-300 p-2 rounded-full hover:bg-white/10 transition-colors"
-                                whileHover={{ scale: 1.1 }}
+                                className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+                                whileHover={{ scale: 1.1, rotate: 90 }}
                                 whileTap={{ scale: 0.9 }}
                             >
-                                <i className="fa-solid fa-times text-xl"></i>
+                                <i className="fa-solid fa-times text-2xl"></i>
                             </motion.button>
                         </div>
 
-                        {/* 文件夹网格 */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                            {folders.map((folder) => (
-                                <div key={folder.id} className="space-y-2">
+                        {/* 搜索框 */}
+                        <div className="mb-6">
+                            <div className="relative">
+                                <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input
+                                    type="text"
+                                    value={appSearchQuery}
+                                    onChange={(e) => setAppSearchQuery(e.target.value)}
+                                    placeholder="搜索应用或分类..."
+                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 分类标签栏 */}
+                        <div className="mb-6 overflow-x-auto pb-2">
+                            <div className="flex gap-2">
+                                <motion.button
+                                    onClick={() => setExpandedFolders([])}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                                        expandedFolders.length === 0
+                                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                    }`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <i className="fa-solid fa-layer-group mr-2"></i>
+                                    全部
+                                </motion.button>
+                                {folders.map((folder) => (
                                     <motion.button
+                                        key={folder.id}
                                         onClick={() => toggleFolder(folder.id)}
-                                        className="w-full flex flex-col items-center justify-center p-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-colors"
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                                            expandedFolders.includes(folder.id)
+                                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                        }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-2">
-                                            <i className={`fa-solid ${folder.icon} text-white text-xl`}></i>
-                                        </div>
-                                        <span className="text-white text-sm font-medium">{folder.name}</span>
+                                        <i className={`fa-solid ${folder.icon} mr-2`}></i>
+                                        {folder.name}
                                     </motion.button>
+                                ))}
+                            </div>
+                        </div>
 
-                                    {/* 展开的应用图标 */}
-                                    {expandedFolders.includes(folder.id) && (
-                                        <motion.div 
-                                            className="grid grid-cols-2 gap-2"
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: "auto", opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            {folder.apps.map((app) => (
+                        {/* 应用网格 */}
+                        <div className="overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
+                            {appSearchQuery ? (
+                                // 搜索模式：显示匹配的应用
+                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                                    {filteredFolders.map((folder) =>
+                                        folder.apps
+                                            .filter(app =>
+                                                app.name.toLowerCase().includes(appSearchQuery.toLowerCase())
+                                            )
+                                            .map((app, index) => (
                                                 <motion.button
                                                     key={app.id}
                                                     onClick={() => handleAppClick(app.url)}
-                                                    className="flex flex-col items-center p-2 rounded-lg hover:bg-white/10 transition-colors"
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
+                                                    className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
+                                                    whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: index * 0.05 }}
                                                 >
-                                                     <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-1" style={{ backgroundColor: app.color }}>
-                                                         <i className={`fa-solid ${app.icon} text-white`}></i>
+                                                    <div
+                                                        className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all"
+                                                        style={{ backgroundColor: app.color }}
+                                                    >
+                                                        <i className={`fa-solid ${app.icon} text-white text-xl`}></i>
                                                     </div>
-                                                    <span className="text-white text-xs text-center">{app.name}</span>
+                                                    <span className="text-white text-xs text-center font-medium">{app.name}</span>
                                                 </motion.button>
-                                            ))}
-                                        </motion.div>
+                                            ))
                                     )}
                                 </div>
-                            ))}
-                        </div>
+                            ) : expandedFolders.length > 0 ? (
+                                // 展开模式：显示选中的分类应用
+                                expandedFolders.map((folderId) => {
+                                    const folder = folders.find(f => f.id === folderId);
+                                    if (!folder) return null;
 
-                        {/* 底部快速访问 */}
-                        <div className="mt-8">
-                            <h3 className="text-white text-sm font-medium mb-4">快速访问</h3>
-                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                                <motion.button
-                                    onClick={() => handleAppClick('https://www.douyin.com')}
-                                    className="flex flex-col items-center p-3 rounded-xl bg-black/20 hover:bg-black/30 transition-colors"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <i className="fa-brands fa-tiktok text-white text-xl mb-1"></i>
-                                    <span className="text-white text-xs">抖音</span>
-                                </motion.button>
-                                <motion.button
-                                    onClick={() => handleAppClick('https://www.bilibili.com')}
-                                    className="flex flex-col items-center p-3 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <i className="fa-brands fa-bilibili text-white text-xl mb-1"></i>
-                                    <span className="text-white text-xs">哔哩哔哩</span>
-                                </motion.button>
-                            </div>
+                                    return (
+                                        <div key={folder.id} className="mb-6">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                                                    <i className={`fa-solid ${folder.icon} text-white`}></i>
+                                                </div>
+                                                <h3 className="text-lg font-bold text-white">{folder.name}</h3>
+                                                <span className="px-2 py-1 bg-white/10 rounded-full text-xs text-gray-300">
+                                                    {folder.apps.length} 个应用
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                                                {folder.apps.map((app, index) => (
+                                                    <motion.button
+                                                        key={app.id}
+                                                        onClick={() => handleAppClick(app.url)}
+                                                        className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
+                                                        whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
+                                                        whileTap={{ scale: 0.9 }}
+                                                        initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        transition={{ delay: index * 0.04, type: "spring", damping: 15 }}
+                                                    >
+                                                        <div
+                                                            className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all"
+                                                            style={{ backgroundColor: app.color }}
+                                                        >
+                                                            <i className={`fa-solid ${app.icon} text-white text-xl`}></i>
+                                                        </div>
+                                                        <span className="text-white text-xs text-center font-medium">{app.name}</span>
+                                                    </motion.button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                // 默认模式：显示所有分类预览和快速访问
+                                <div className="space-y-8">
+                                    {/* 快速访问 */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <i className="fa-solid fa-bolt text-yellow-400"></i>
+                                            <h3 className="text-lg font-bold text-white">快速访问</h3>
+                                        </div>
+                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                                            {[
+                                                { url: 'https://www.douyin.com', icon: 'fa-brands fa-tiktok', name: '抖音', color: 'bg-black' },
+                                                { url: 'https://www.bilibili.com', icon: 'fa-brands fa-bilibili', name: '哔哩哔哩', color: 'bg-pink-500' },
+                                                { url: 'https://www.youtube.com', icon: 'fa-brands fa-youtube', name: 'YouTube', color: 'bg-red-600' },
+                                                { url: 'https://www.twitter.com', icon: 'fa-brands fa-twitter', name: 'X', color: 'bg-black' },
+                                                { url: 'https://www.instagram.com', icon: 'fa-brands fa-instagram', name: 'Instagram', color: 'bg-gradient-to-br from-purple-600 to-pink-500' },
+                                                { url: 'https://www.facebook.com', icon: 'fa-brands fa-facebook', name: 'Facebook', color: 'bg-blue-600' },
+                                                { url: 'https://www.linkedin.com', icon: 'fa-brands fa-linkedin', name: 'LinkedIn', color: 'bg-blue-700' },
+                                                { url: 'https://www.reddit.com', icon: 'fa-brands fa-reddit', name: 'Reddit', color: 'bg-orange-600' },
+                                                { url: 'https://discord.com', icon: 'fa-brands fa-discord', name: 'Discord', color: 'bg-indigo-600' },
+                                                { url: 'https://www.telegram.org', icon: 'fa-brands fa-telegram', name: 'Telegram', color: 'bg-blue-400' },
+                                            ].map((item, index) => (
+                                                <motion.button
+                                                    key={index}
+                                                    onClick={() => handleAppClick(item.url)}
+                                                    className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
+                                                    whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    transition={{ delay: index * 0.04, type: "spring", damping: 15 }}
+                                                >
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all ${item.color}`}>
+                                                        <i className={`${item.icon} text-white text-xl`}></i>
+                                                    </div>
+                                                    <span className="text-white text-xs text-center font-medium">{item.name}</span>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* 分类预览 */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <i className="fa-solid fa-folder-open text-blue-400"></i>
+                                            <h3 className="text-lg font-bold text-white">分类浏览</h3>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                                            {folders.map((folder, index) => (
+                                                <motion.button
+                                                    key={folder.id}
+                                                    onClick={() => toggleFolder(folder.id)}
+                                                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
+                                                    whileHover={{ scale: 1.08, y: -4 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    transition={{ delay: index * 0.05, type: "spring", damping: 15 }}
+                                                >
+                                                    <motion.div
+                                                        className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-3 shadow-lg group-hover:shadow-2xl transition-all"
+                                                        whileHover={{ rotate: [0, -5, 5, 0] }}
+                                                        transition={{ duration: 0.5 }}
+                                                    >
+                                                        <i className={`fa-solid ${folder.icon} text-white text-2xl`}></i>
+                                                    </motion.div>
+                                                    <span className="text-white text-sm font-medium">{folder.name}</span>
+                                                    <span className="text-gray-400 text-xs mt-1">{folder.apps.length} 个应用</span>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 </motion.div>

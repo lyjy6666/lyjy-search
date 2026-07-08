@@ -12,12 +12,12 @@ function getPlugins() {
 export default defineConfig({
   plugins: getPlugins(),
   server: {
-    port: 5000,
+    port: 5001,
     host: '0.0.0.0',
     hmr: {
       overlay: true,
       path: '/hot/vite-hmr',
-      port: 6000,
+      port: 6001,
       clientPort: 443,
       timeout: 30000,
     },

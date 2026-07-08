@@ -1,819 +1,171 @@
-import React from 'react';
-import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
-type SearchEngine = "baidu" | "bing" | "google" | "yandex" | "doubao" | "tongyi";
-type Category = 'news' | 'shopping' | 'entertainment' | 'tools' | 'design' | 'dev' | 'games';
-
-// 网站应用类型定义
-interface App {
-  id: string;
-  name: string;
-  url: string;
-  icon: string; // FontAwesome 图标名称
-  color: string; // 图标背景颜色
-}
-
-// 文件夹类型定义
-interface Folder {
-  id: Category;
-  name: string;
-  icon: string;
-  apps: App[];
-}
-
-const searchEngines = {
-    bing: {
-        name: "必应",
-        url: "https://www.bing.com/search",
-        param: "q",
-        color: "from-blue-500 to-blue-600"
-    },
-
-    yandex: {
-        name: "Yandex",
-        url: "https://yandex.com/search",
-        param: "text",
-        color: "from-red-500 to-pink-500"
-    },
-
-    doubao: {
-        name: "豆包",
-        url: "https://www.doubao.com/chat/",
-        param: "q",
-        color: "from-green-500 to-teal-500"
-    },
-
-    tongyi: {
-        name: "通义千问",
-        url: "https://www.tongyi.com/",
-        param: "q",
-        color: "from-purple-500 to-indigo-500"
-    },
-
-    google: {
-        name: "谷歌",
-        url: "https://www.google.com/search",
-        param: "q",
-        color: "from-red-500 to-orange-500"
-    },
-
-    baidu: {
-        name: "百度",
-        url: "https://www.baidu.com/s",
-        param: "wd",
-        color: "from-blue-500 to-blue-600"
-    }
-};
-
-// 定义各类文件夹和应用数据
-const folders: Folder[] = [
-  {
-    id: 'news',
-    name: '资讯',
-    icon: 'fa-newspaper',
-    apps: [
-      { id: 'weibo', name: '微博', url: 'https://weibo.com', icon: 'fa-comment-dots', color: '#E6162D' },
-      { id: 'zhihu', name: '知乎', url: 'https://zhihu.com', icon: 'fa-question-circle', color: '#0066FF' },
-      { id: 'toutiao', name: '头条', url: 'https://www.toutiao.com', icon: 'fa-fire', color: '#FF6700' },
-      { id: 'tieba', name: '贴吧', url: 'https://tieba.baidu.com', icon: 'fa-comments', color: '#00A0E9' },
-      { id: '163', name: '网易新闻', url: 'https://news.163.com', icon: 'fa-newspaper', color: '#D81B60' },
-      { id: 'sina', name: '新浪新闻', url: 'https://news.sina.com.cn', icon: 'fa-rss', color: '#D32F2F' },
-      { id: '36kr', name: '36氪', url: 'https://36kr.com', icon: 'fa-chart-line', color: '#2196F3' },
-      { id: 'huxiu', name: '虎嗅', url: 'https://www.huxiu.com', icon: 'fa-lightbulb', color: '#FF9800' },
-    ]
-  },
-  {
-    id: 'shopping',
-    name: '购物',
-    icon: 'fa-shopping-cart',
-    apps: [
-      { id: 'taobao', name: '淘宝', url: 'https://www.taobao.com', icon: 'fa-shopping-bag', color: '#FF5000' },
-      { id: 'jd', name: '京东', url: 'https://www.jd.com', icon: 'fa-shopping-basket', color: '#E1251B' },
-      { id: 'pdd', name: '拼多多', url: 'https://www.pinduoduo.com', icon: 'fa-tag', color: '#E02E24' },
-      { id: 'suning', name: '苏宁', url: 'https://www.suning.com', icon: 'fa-thumbs-up', color: '#E40000' },
-      { id: 'tmall', name: '天猫', url: 'https://www.tmall.com', icon: 'fa-star', color: '#FF0036' },
-      { id: 'vip', name: '唯品会', url: 'https://www.vip.com', icon: 'fa-gem', color: '#FF69B4' },
-      { id: 'amazon', name: '亚马逊', url: 'https://www.amazon.cn', icon: 'fa-amazon', color: '#FF9900' },
-      { id: 'dianping', name: '大众点评', url: 'https://www.dianping.com', icon: 'fa-utensils', color: '#F37021' },
-    ]
-  },
-  {
-    id: 'entertainment',
-    name: '影音',
-    icon: 'fa-film',
-    apps: [
-      { id: 'iqiyi', name: '爱奇艺', url: 'https://www.iqiyi.com', icon: 'fa-play-circle', color: '#12B7F5' },
-      { id: 'youku', name: '优酷', url: 'https://www.youku.com', icon: 'fa-video', color: '#FF6700' },
-      { id: 'qqmusic', name: 'QQ音乐', url: 'https://y.qq.com', icon: 'fa-music', color: '#12B7F5' },
-      { id: 'netease', name: '网易云', url: 'https://music.163.com', icon: 'fa-cloud', color: '#C20C0C' },
-      { id: 'kugou', name: '酷狗', url: 'https://www.kugou.com', icon: 'fa-headphones', color: '#2BA1F7' },
-      { id: 'kuwo', name: '酷我', url: 'https://www.kuwo.cn', icon: 'fa-compact-disc', color: '#FF69B4' },
-      { id: 'douyu', name: '斗鱼', url: 'https://www.douyu.com', icon: 'fa-fish', color: '#FF5E00' },
-      { id: 'huya', name: '虎牙', url: 'https://www.huya.com', icon: 'fa-paw', color: '#FB7299' },
-    ]
-  },
-  {
-    id: 'tools',
-    name: '工具',
-    icon: 'fa-tools',
-    apps: [
-      { id: 'fanyi', name: '翻译', url: 'https://fanyi.baidu.com', icon: 'fa-language', color: '#4385F5' },
-      { id: 'calculator', name: '计算器', url: 'https://www.calculator.net', icon: 'fa-calculator', color: '#34A853' },
-      { id: 'calendar', name: '日历', url: 'https://calendar.google.com', icon: 'fa-calendar-alt', color: '#FBBC04' },
-      { id: 'notion', name: '笔记', url: 'https://www.notion.so', icon: 'fa-sticky-note', color: '#2E2E2E' },
-      { id: 'wenku', name: '文库', url: 'https://wenku.baidu.com', icon: 'fa-book-open', color: '#FF6600' },
-      { id: 'pdf', name: 'PDF转换', url: 'https://www.ilovepdf.com', icon: 'fa-file-pdf', color: '#E91E63' },
-      { id: 'color', name: '取色器', url: 'https://colorhunt.co', icon: 'fa-palette', color: '#FF5722' },
-      { id: 'json', name: 'JSON格式化', url: 'https://www.json.cn', icon: 'fa-code', color: '#00BCD4' },
-      { id: 'base64', name: 'Base64', url: 'https://www.base64decode.org', icon: 'fa-hashtag', color: '#795548' },
-      { id: 'image', name: '图片压缩', url: 'https://tinypng.com', icon: 'fa-compress', color: '#00E676' },
-    ]
-  },
-  {
-    id: 'design',
-    name: '设计',
-    icon: 'fa-paint-brush',
-    apps: [
-      { id: 'figma', name: 'Figma', url: 'https://www.figma.com', icon: 'fa-square', color: '#0ACF83' },
-      { id: 'behance', name: 'Behance', url: 'https://www.behance.net', icon: 'fa-behance', color: '#053EFF' },
-      { id: 'dribbble', name: 'Dribbble', url: 'https://dribbble.com', icon: 'fa-dribbble', color: '#EA4C89' },
-      { id: 'canva', name: 'Canva', url: 'https://www.canva.com', icon: 'fa-heart', color: '#00C4CC' },
-      { id: 'pinterest', name: 'Pinterest', url: 'https://www.pinterest.com', icon: 'fa-pinterest', color: '#E60023' },
-      { id: 'adobe', name: 'Adobe', url: 'https://www.adobe.com', icon: 'fa-pen-nib', color: '#FF0000' },
-      { id: 'unsplash', name: 'Unsplash', url: 'https://unsplash.com', icon: 'fa-camera', color: '#000000' },
-      { id: 'iconfont', name: 'Iconfont', url: 'https://www.iconfont.cn', icon: 'fa-icons', color: '#FF3366' },
-    ]
-  },
-  {
-    id: 'dev',
-    name: '开发',
-    icon: 'fa-code',
-    apps: [
-      { id: 'github', name: 'GitHub', url: 'https://github.com', icon: 'fa-github', color: '#24292E' },
-      { id: 'stackoverflow', name: 'StackOverflow', url: 'https://stackoverflow.com', icon: 'fa-stack-overflow', color: '#F58025' },
-      { id: 'mdn', name: 'MDN', url: 'https://developer.mozilla.org', icon: 'fa-book', color: '#3C4146' },
-      { id: 'npm', name: 'NPM', url: 'https://www.npmjs.com', icon: 'fa-box', color: '#CB3837' },
-      { id: 'gitlab', name: 'GitLab', url: 'https://about.gitlab.com', icon: 'fa-gitlab', color: '#FC6D26' },
-      { id: 'v2ex', name: 'V2EX', url: 'https://www.v2ex.com', icon: 'fa-users', color: '#FFFFFF' },
-      { id: 'segmentfault', name: '思否', url: 'https://segmentfault.com', icon: 'fa-layer-group', color: '#00A3E0' },
-      { id: 'juejin', name: '掘金', url: 'https://juejin.cn', icon: 'fa-compass', color: '#1E80FF' },
-      { id: 'codepen', name: 'CodePen', url: 'https://codepen.io', icon: 'fa-codepen', color: '#000000' },
-      { id: 'typescript', name: 'TypeScript', url: 'https://www.typescriptlang.org', icon: 'fa-file-code', color: '#3178C6' },
-    ]
-  },
-  {
-    id: 'games',
-    name: '游戏',
-    icon: 'fa-gamepad',
-    apps: [
-      { id: 'steam', name: 'Steam', url: 'https://store.steampowered.com', icon: 'fa-steam', color: '#1B2838' },
-      { id: 'epic', name: 'Epic', url: 'https://www.epicgames.com', icon: 'fa-gamepad', color: '#2A2A2A' },
-      { id: 'battlenet', name: '暴雪', url: 'https://www.blizzard.com', icon: 'fa-snowflake', color: '#00AEFF' },
-      { id: 'riot', name: 'Riot', url: 'https://www.riotgames.com', icon: 'fa-trophy', color: '#E94B3C' },
-      { id: 'taptap', name: 'TapTap', url: 'https://www.taptap.cn', icon: 'fa-mobile-alt', color: '#FF5722' },
-      { id: 'gog', name: 'GOG', url: 'https://www.gog.com', icon: 'fa-star', color: '#86328A' },
-      { id: 'itch', name: 'itch.io', url: 'https://itch.io', icon: 'fa-gamepad', color: '#FA5C5C' },
-      { id: 'origin', name: 'Origin', url: 'https://www.origin.com', icon: 'fa-play', color: '#F56C2C' },
-    ]
-  }
-];
 
 export default function Home() {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedEngine, setSelectedEngine] = useState<SearchEngine>("bing");
-    const [isFocused, setIsFocused] = useState(false);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [timeOfDay, setTimeOfDay] = useState("morning");
-  const [showUpdateLog, setShowUpdateLog] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [showAppGrid, setShowAppGrid] = useState(false);
-  const [expandedFolders, setExpandedFolders] = useState<Category[]>([]);
-  const [appSearchQuery, setAppSearchQuery] = useState("");
-  const [showTimeHint, setShowTimeHint] = useState(false);
-
-  // 3秒后显示时间提示
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTimeHint(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 10秒后自动隐藏提示（如果用户没有点击时间）
-  useEffect(() => {
-    let autoHideTimer: ReturnType<typeof setTimeout>;
-    if (showTimeHint) {
-      autoHideTimer = setTimeout(() => {
-        setShowTimeHint(false);
-      }, 10000);
-    }
-    return () => {
-      if (autoHideTimer) {
-        clearTimeout(autoHideTimer);
-      }
-    };
-  }, [showTimeHint]);
-
-  // 处理时间点击
-  const handleTimeClick = () => {
-    setShowAppGrid(!showAppGrid);
-    setShowTimeHint(false); // 点击时间后隐藏提示
-    // 点击时间时重置展开的文件夹
-    if (!showAppGrid) {
-      setExpandedFolders([]);
-      setAppSearchQuery("");
-    }
-  };
-
-  // 切换文件夹展开状态（单选模式）
-  const toggleFolder = (folderId: Category) => {
-    setExpandedFolders(prev =>
-      prev.includes(folderId)
-        ? [] // 如果已展开，则关闭所有
-        : [folderId] // 否则只展开这一个
-    );
-  };
-
-  // 处理网站点击
-  const handleAppClick = (url: string) => {
-    window.open(url, "_blank");
-  };
-
-  // 过滤文件夹和应用
-  const filteredFolders = folders.filter(folder => {
-    if (!appSearchQuery.trim()) return true;
-    const searchLower = appSearchQuery.toLowerCase();
-    // 搜索文件夹名称
-    if (folder.name.toLowerCase().includes(searchLower)) return true;
-    // 搜索文件夹内的应用
-    return folder.apps.some(app =>
-      app.name.toLowerCase().includes(searchLower)
-    );
-  });
-
-
-    useEffect(() => {
-        const hour = new Date().getHours();
-
-        if (hour < 12) {
-            setTimeOfDay("morning");
-        } else if (hour < 18) {
-            setTimeOfDay("afternoon");
-        } else {
-            setTimeOfDay("evening");
-        }
-    }, []);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-
-        return () => {
-            clearInterval(timer);
-        };
-    }, []);
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!searchQuery.trim())
-            return;
-
-        const engine = searchEngines[selectedEngine];
-        const searchUrl = new URL(engine.url);
-        searchUrl.searchParams.set(engine.param, searchQuery);
-        window.open(searchUrl.toString(), "_blank");
-    };
-
-    const getGreeting = () => {
-        switch (timeOfDay) {
-        case "morning":
-            return "早上好";
-        case "afternoon":
-            return "下午好";
-        case "evening":
-            return "晚上好";
-        default:
-            return "你好";
-        }
-    };
-
-    useEffect(() => {
-        const handleClickOutside = () => {
-            setShowDropdown(false);
-        };
-
-        document.addEventListener("click", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("click", handleClickOutside);
-        };
-    }, []);
-
     return (
-        <div className="min-h-screen flex flex-col">
-            {}
+        <div className="min-h-screen flex flex-col relative overflow-hidden">
+            {/* 背景图 */}
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <div
                     className="absolute inset-0 bg-[url('https://coze-coding-project.tos.coze.site/coze_storage_7603202760753872959/image/generate_image_e1c63e9a-52b1-4720-a583-0dcee9b6728f.jpeg?sign=1804772530-8e5692a888-0-d85c70ce4b7715d716a4a54d83d85a18270642ea1b58aad935817558a6a46fdf')] bg-cover bg-center opacity-70"
-                    aria-hidden="true"></div>
+                    aria-hidden="true"
+                ></div>
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.6) 100%)'
+                        background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%)'
                     }}
                 ></div>
             </div>
-            {}
-            <main
-                className="flex-1 flex flex-col items-center justify-center relative z-10 px-4 py-8">
-                {}
-                <style>{`
-            .custom-scrollbar::-webkit-scrollbar {
-              width: 8px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-track {
-              background: rgba(255, 255, 255, 0.05);
-              border-radius: 4px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-              background: rgba(255, 255, 255, 0.2);
-              border-radius: 4px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-              background: rgba(255, 255, 255, 0.3);
-            }
-          `}</style>
-                <h2
-                    className="text-[clamp(2rem,6vw,4rem)] font-medium mb-0.5 drop-shadow-lg text-white"
-                    style={{
-                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)"
-                    }}>
-                    lyjy的搜索起始页~
-                </h2>
-                <div className="flex items-center gap-4 mb-1">
-                    <motion.p
-                        className={`text-[clamp(1rem,2vw,1.25rem)] text-white cursor-pointer drop-shadow-lg relative ${showTimeHint ? 'animate-pulse' : ''}`}
-                        style={{
-                            fontSize: "72px",
-                            textShadow: showTimeHint 
-                                ? "0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6), 3px 3px 6px rgba(0, 0, 0, 0.9)"
-                                : "3px 3px 6px rgba(0, 0, 0, 0.9)"
-                        }}
-                        onClick={handleTimeClick}
+
+            {/* 主内容 */}
+            <main className="flex-1 flex flex-col items-center justify-center relative z-10 px-6 py-12">
+                {/* 顶部装饰线 */}
+                <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "80px", opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+                    className="h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent mb-12"
+                ></motion.div>
+
+                {/* 图标 */}
+                <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
+                    className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl mb-8"
+                >
+                    <i className="fa-solid fa-triangle-exclamation text-4xl text-white"></i>
+                </motion.div>
+
+                {/* 主标题 */}
+                <motion.h1
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                    className="text-[clamp(1.8rem,5vw,3.5rem)] font-bold text-white mb-4 text-center"
+                    style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.6)" }}
+                >
+                    网站即将下线
+                </motion.h1>
+
+                {/* 副标题 */}
+                <motion.p
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.7, duration: 0.8, ease: "easeOut" }}
+                    className="text-[clamp(1rem,2.5vw,1.25rem)] text-white/80 mb-10 text-center max-w-xl"
+                    style={{ textShadow: "1px 1px 4px rgba(0,0,0,0.5)" }}
+                >
+                    感谢大家一直以来的支持与陪伴 ❤️
+                </motion.p>
+
+                {/* 通知卡片 */}
+                <motion.div
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
+                    className="w-full max-w-lg bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl mb-10"
+                >
+                    <div className="space-y-5">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                <i className="fa-solid fa-info text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h3 className="text-white font-semibold text-lg mb-1">域名变更通知</h3>
+                                <p className="text-white/70 text-sm leading-relaxed">
+                                    本站将进行域名迁移，原有域名即将停止服务。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <i className="fa-solid fa-link text-emerald-400"></i>
+                            </div>
+                            <div>
+                                <h3 className="text-white font-semibold text-lg mb-1">新地址</h3>
+                                <a
+                                    href="https://lyjy.netlify.app"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-emerald-400 hover:text-emerald-300 text-sm font-mono transition-colors"
+                                >
+                                    https://lyjy.netlify.app
+                                </a>
+                                <p className="text-white/60 text-xs mt-1">
+                                    请收藏或记住新地址，方便后续访问
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                                <i className="fa-solid fa-clock text-amber-400"></i>
+                            </div>
+                            <div>
+                                <h3 className="text-white font-semibold text-lg mb-1">时间安排</h3>
+                                <p className="text-white/70 text-sm leading-relaxed">
+                                    域名变更通知已发布，原域名将在过渡期后正式下线，
+                                    请尽快迁移至新地址继续使用。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 跳转按钮 */}
+                    <motion.a
+                        href="https://lyjy.netlify.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        className="mt-8 w-full flex items-center justify-center gap-3 py-4 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300"
                     >
-                        {currentTime.toLocaleTimeString("zh-CN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit"
-                        })}
-                    </motion.p>
-                    {showTimeHint && (
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="relative inline-flex items-center justify-center px-2 py-1 z-50"
-                        >
-                            <svg
-                                className="absolute inset-0 -left-1 -top-1 -right-1 -bottom-1"
-                                width="220"
-                                height="80"
-                                viewBox="0 0 220 80"
-                            >
-                                <motion.ellipse
-                                    cx="95"
-                                    cy="32"
-                                    rx="85"
-                                    ry="28"
-                                    fill="none"
-                                    stroke="white"
-                                    strokeWidth="3"
-                                    initial={{ pathLength: 0, opacity: 0 }}
-                                    animate={{ pathLength: 1, opacity: 1 }}
-                                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                                />
-                            </svg>
-                            <span
-                                className="text-white text-lg font-medium drop-shadow-lg whitespace-nowrap relative z-10"
-                                style={{
-                                    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.9)",
-                                    marginLeft: "12px",
-                                    marginTop: "8px"
-                                }}
-                            >
-                                👆 点击时间试试
-                            </span>
-                        </motion.div>
-                    )}
-                </div>
-                <h1
-                    className="text-[clamp(2rem,5vw,3.5rem)] font-bold text-white mb-0.5 tracking-tight drop-shadow-lg"
-                    style={{
-                        textShadow: "3px 3px 6px rgba(0, 0, 0, 0.9)"
-                    }}>
-                    {getGreeting()}
-                </h1>
-                <p
-                    className="text-[clamp(1rem,2vw,1.25rem)] text-white mb-1.5 drop-shadow-lg"
-                    style={{
-                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.9)"
-                    }}>今天是 {new Date().toLocaleDateString("zh-CN", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric"
-                    })}
-                </p>
-                {}
-                <div className="w-full max-w-3xl">
-                    {}
-                    <form onSubmit={handleSearch} className="relative">
-                        <div
-                            className={`relative w-full transition-all duration-300 ${isFocused ? "scale-[1.02]" : "scale-100"}`}>
-                            {}
-                            <div
-                                className="absolute left-0 top-0 bottom-0 w-24 flex items-center border-r border-gray-200 dark:border-gray-700">
-                                <button
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        setShowDropdown(!showDropdown);
-                                    }}
-                                    className="flex items-center justify-center w-full h-full focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 rounded-l-full">
-                                    <div className="flex items-center space-x-2">
-                                        <i
-                                            className={`fa-solid fa-chevron-down text-xs text-gray-500 transition-transform duration-300 ${showDropdown ? "rotate-180" : ""}`}></i>
-                                        <span className="text-xs font-medium">{searchEngines[selectedEngine].name}</span>
-                                    </div>
-                                </button>
-                                {}
-                                {showDropdown && <div
-                                    className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200 w-40 border-t-2 border-blue-500">
-                                    {Object.entries(searchEngines).map(([key, engine]) => <button
-                                        key={key}
-                                        onClick={() => {
-                                            if (key === "doubao" || key === "tongyi") {
-                                                window.open(engine.url, "_blank");
-                                            } else {
-                                                setSelectedEngine(key as SearchEngine);
-                                                setShowDropdown(false);
-                                            }
-                                        }}
-                                        className={`flex items-center space-x-3 px-3 py-2 w-full text-left transition-all text-sm ${selectedEngine === key ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium" : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"} ${key === "baidu" ? "opacity-50" : key === "google" ? "opacity-70" : ""}`}>
-                                        <span className="whitespace-nowrap">{engine.name}{key === "baidu" && <span className="text-gray-400 text-xs ml-1">(垃圾过多，极不推荐)</span>}{key === "google" && <span className="text-gray-400 text-xs ml-1">(可能打不开)</span>}{key === "doubao" && <span className="text-gray-400 text-xs ml-1">(直接跳转)</span>}{key === "tongyi" && <span className="text-gray-400 text-xs ml-1">(直接跳转)</span>}</span>
-                                    </button>)}
-                                </div>}
-                            </div>
-                            {}
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                onFocus={() => setIsFocused(true)}
-                                onBlur={() => setIsFocused(false)}
-                                placeholder="请输入搜索内容，按回车或点击搜索按钮..."
-                                className="w-full pl-24 pr-20 py-4 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-300 text-gray-800 dark:text-white"
-                                style={{
-                                    '--tw-ring-color': selectedEngine === "bing" ? "rgba(37, 99, 235, 0.5)" : "rgba(255, 51, 51, 0.5)"
-                                } as React.CSSProperties}
-                            />
-                            <button
-                                type="submit"
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300"
-                                style={{
-                                    backgroundColor: selectedEngine === "bing" ? "#2563eb" : "#ff3333"
-                                }}>
-                                <i className="fa-solid fa-search text-white text-sm"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <i className="fa-solid fa-paper-plane"></i>
+                        <span>立即前往新地址</span>
+                        <i className="fa-solid fa-arrow-right text-sm"></i>
+                    </motion.a>
+                </motion.div>
+
+                {/* 底部提示 */}
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
+                    className="flex flex-col items-center gap-2"
+                >
+                    <p className="text-white/50 text-sm" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                        给您带来的不便，敬请谅解
+                    </p>
+                    <p className="text-white/30 text-xs">
+                        lyjy 搜索页 · 感谢陪伴
+                    </p>
+                </motion.div>
+
+                {/* 底部装饰线 */}
+                <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "80px", opacity: 1 }}
+                    transition={{ delay: 1.4, duration: 0.8, ease: "easeOut" }}
+                    className="h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent mt-12"
+                ></motion.div>
             </main>
-            {}
-            <div className="fixed bottom-24 right-6 z-40">
-                <a
+
+            {/* 右下角链接按钮 */}
+            <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
+                <motion.a
                     href="https://lyjy.netlify.app"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                    aria-label="访问lyjy网站">
-                    <i className="fa-solid fa-paper-plane"></i>
-                </a>
-            </div>
-            {}
-            <div className="fixed bottom-6 right-6 z-40">
-                <button
-                    onClick={() => setShowUpdateLog(true)}
-                    className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                    aria-label="查看更新日志">
-                    <i className="fa-solid fa-history"></i>
-                </button>
-            </div>
-            {}
-            {showUpdateLog && <div
-                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-                <div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-in zoom-in-95 duration-300">
-                    <div
-                        className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-white">更新日志</h3>
-                        <button
-                            onClick={() => setShowUpdateLog(false)}
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                            aria-label="关闭">
-                            <i className="fa-solid fa-times text-lg"></i>
-                        </button>
-                    </div>
-                    <div className="p-5 space-y-6">
-                        <div className="border-l-4 border-blue-500 pl-4 py-1">
-                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2026.3.11 更新 V2.1</h4>
-                            <ul
-                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>优化了一下动画，增加了一些功能</li>
-                            </ul>
-                        </div>
-                        <div className="border-l-4 border-gray-300 pl-4 py-1">
-                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2026.1.29 更新 V2.0</h4>
-                            <ul
-                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>增加大量功能</li>
-                                <li>修复了一些已知问题</li>
-                            </ul>
-                        </div>
-                        <div className="border-l-4 border-gray-300 pl-4 py-1">
-                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.27 更新 v1.2</h4>
-                            <ul
-                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>修复了一些已知问题</li>
-                            </ul>
-                        </div>
-                        <div className="border-l-4 border-gray-300 pl-4 py-1">
-                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.10 更新 v1.1</h4>
-                            <ul
-                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>新增豆包、千问搜索</li>
-                                <li>修复已知问题</li>
-                            </ul>
-                        </div>
-                        <div className="border-l-4 border-gray-300 pl-4 py-1">
-                            <h4 className="font-semibold text-lg text-gray-800 dark:text-white">2025.8.6 发布 v1.0</h4>
-                            <ul
-                                className="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>网站上线啦，支持搜索哦</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end">
-                        <button
-                            onClick={() => setShowUpdateLog(false)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">我知道了
-                                                                      </button>
-                    </div>
-                </div>
-            </div>}
-            {}
-            <footer
-                className="py-4 text-center text-gray-500 dark:text-gray-400 text-sm relative z-10">
-                 <p>© {new Date().getFullYear()}快速搜索起始页</p>
-            </footer>
-
-            {/* 应用网格菜单 */}
-            {showAppGrid && (
-                <motion.div
-                    className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 flex items-center justify-center p-4"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"
+                    title="前往新地址"
                 >
-                    <motion.div
-                        className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-3xl p-6 w-full max-w-7xl max-h-[85vh] overflow-hidden shadow-2xl border border-white/10"
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        {/* 顶部栏 */}
-                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                                <motion.i
-                                    className="fa-solid fa-grid-2 text-blue-400"
-                                    animate={{ rotate: [0, 360] }}
-                                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                                ></motion.i>
-                                <span>常用应用</span>
-                            </h2>
-                            <motion.button
-                                onClick={() => setShowAppGrid(false)}
-                                className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-                                whileHover={{ scale: 1.1, rotate: 90 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <i className="fa-solid fa-times text-2xl"></i>
-                            </motion.button>
-                        </div>
-
-                        {/* 搜索框 */}
-                        <div className="mb-6">
-                            <div className="relative">
-                                <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input
-                                    type="text"
-                                    value={appSearchQuery}
-                                    onChange={(e) => setAppSearchQuery(e.target.value)}
-                                    placeholder="搜索应用或分类..."
-                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                                />
-                            </div>
-                        </div>
-
-                        {/* 分类标签栏 */}
-                        <div className="mb-6 overflow-x-auto pb-2">
-                            <div className="flex gap-2">
-                                <motion.button
-                                    onClick={() => setExpandedFolders([])}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                                        expandedFolders.length === 0
-                                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                                    }`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <i className="fa-solid fa-layer-group mr-2"></i>
-                                    全部
-                                </motion.button>
-                                {folders.map((folder) => (
-                                    <motion.button
-                                        key={folder.id}
-                                        onClick={() => toggleFolder(folder.id)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                                            expandedFolders.includes(folder.id)
-                                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                                        }`}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <i className={`fa-solid ${folder.icon} mr-2`}></i>
-                                        {folder.name}
-                                    </motion.button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 应用网格 */}
-                        <div className="overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
-                            {appSearchQuery ? (
-                                // 搜索模式：显示匹配的应用
-                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-                                    {filteredFolders.map((folder) =>
-                                        folder.apps
-                                            .filter(app =>
-                                                app.name.toLowerCase().includes(appSearchQuery.toLowerCase())
-                                            )
-                                            .map((app, index) => (
-                                                <motion.button
-                                                    key={app.id}
-                                                    onClick={() => handleAppClick(app.url)}
-                                                    className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
-                                                    whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                >
-                                                    <div
-                                                        className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all"
-                                                        style={{ backgroundColor: app.color }}
-                                                    >
-                                                        <i className={`fa-solid ${app.icon} text-white text-xl`}></i>
-                                                    </div>
-                                                    <span className="text-white text-xs text-center font-medium">{app.name}</span>
-                                                </motion.button>
-                                            ))
-                                    )}
-                                </div>
-                            ) : expandedFolders.length > 0 ? (
-                                // 展开模式：显示选中的分类应用
-                                expandedFolders.map((folderId) => {
-                                    const folder = folders.find(f => f.id === folderId);
-                                    if (!folder) return null;
-
-                                    return (
-                                        <div key={folder.id} className="mb-6">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                                                    <i className={`fa-solid ${folder.icon} text-white`}></i>
-                                                </div>
-                                                <h3 className="text-lg font-bold text-white">{folder.name}</h3>
-                                                <span className="px-2 py-1 bg-white/10 rounded-full text-xs text-gray-300">
-                                                    {folder.apps.length} 个应用
-                                                </span>
-                                            </div>
-                                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-                                                {folder.apps.map((app, index) => (
-                                                    <motion.button
-                                                        key={app.id}
-                                                        onClick={() => handleAppClick(app.url)}
-                                                        className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
-                                                        whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        initial={{ opacity: 0, y: 30, scale: 0.8 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        transition={{ delay: index * 0.04, type: "spring", damping: 15 }}
-                                                    >
-                                                        <div
-                                                            className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all"
-                                                            style={{ backgroundColor: app.color }}
-                                                        >
-                                                            <i className={`fa-solid ${app.icon} text-white text-xl`}></i>
-                                                        </div>
-                                                        <span className="text-white text-xs text-center font-medium">{app.name}</span>
-                                                    </motion.button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                // 默认模式：显示所有分类预览和快速访问
-                                <div className="space-y-8">
-                                    {/* 快速访问 */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <i className="fa-solid fa-bolt text-yellow-400"></i>
-                                            <h3 className="text-lg font-bold text-white">快速访问</h3>
-                                        </div>
-                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-                                            {[
-                                                { url: 'https://www.douyin.com', icon: 'fa-brands fa-tiktok', name: '抖音', color: 'bg-black' },
-                                                { url: 'https://www.bilibili.com', icon: 'fa-brands fa-bilibili', name: '哔哩哔哩', color: 'bg-pink-500' },
-                                                { url: 'https://www.youtube.com', icon: 'fa-brands fa-youtube', name: 'YouTube', color: 'bg-red-600' },
-                                                { url: 'https://www.twitter.com', icon: 'fa-brands fa-twitter', name: 'X', color: 'bg-black' },
-                                                { url: 'https://www.instagram.com', icon: 'fa-brands fa-instagram', name: 'Instagram', color: 'bg-gradient-to-br from-purple-600 to-pink-500' },
-                                                { url: 'https://www.facebook.com', icon: 'fa-brands fa-facebook', name: 'Facebook', color: 'bg-blue-600' },
-                                                { url: 'https://www.linkedin.com', icon: 'fa-brands fa-linkedin', name: 'LinkedIn', color: 'bg-blue-700' },
-                                                { url: 'https://www.reddit.com', icon: 'fa-brands fa-reddit', name: 'Reddit', color: 'bg-orange-600' },
-                                                { url: 'https://discord.com', icon: 'fa-brands fa-discord', name: 'Discord', color: 'bg-indigo-600' },
-                                                { url: 'https://www.telegram.org', icon: 'fa-brands fa-telegram', name: 'Telegram', color: 'bg-blue-400' },
-                                            ].map((item, index) => (
-                                                <motion.button
-                                                    key={index}
-                                                    onClick={() => handleAppClick(item.url)}
-                                                    className="flex flex-col items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
-                                                    whileHover={{ scale: 1.1, y: -4, rotate: [0, 2, -2, 0] }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    initial={{ opacity: 0, y: 30, scale: 0.8 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    transition={{ delay: index * 0.04, type: "spring", damping: 15 }}
-                                                >
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:shadow-2xl transition-all ${item.color}`}>
-                                                        <i className={`${item.icon} text-white text-xl`}></i>
-                                                    </div>
-                                                    <span className="text-white text-xs text-center font-medium">{item.name}</span>
-                                                </motion.button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* 分类预览 */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <i className="fa-solid fa-folder-open text-blue-400"></i>
-                                            <h3 className="text-lg font-bold text-white">分类浏览</h3>
-                                        </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                                            {folders.map((folder, index) => (
-                                                <motion.button
-                                                    key={folder.id}
-                                                    onClick={() => toggleFolder(folder.id)}
-                                                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
-                                                    whileHover={{ scale: 1.08, y: -4 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    initial={{ opacity: 0, y: 30, scale: 0.8 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    transition={{ delay: index * 0.05, type: "spring", damping: 15 }}
-                                                >
-                                                    <motion.div
-                                                        className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-3 shadow-lg group-hover:shadow-2xl transition-all"
-                                                        whileHover={{ rotate: [0, -5, 5, 0] }}
-                                                        transition={{ duration: 0.5 }}
-                                                    >
-                                                        <i className={`fa-solid ${folder.icon} text-white text-2xl`}></i>
-                                                    </motion.div>
-                                                    <span className="text-white text-sm font-medium">{folder.name}</span>
-                                                    <span className="text-gray-400 text-xs mt-1">{folder.apps.length} 个应用</span>
-                                                </motion.button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
+                    <i className="fa-solid fa-paper-plane"></i>
+                </motion.a>
+            </div>
         </div>
     );
 }

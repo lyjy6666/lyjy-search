@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼图验证码 - 整窗口拼图验证</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    background: #1a1a2e;
+  }
+
+  /* ===== 固定背景层 - 包含大凹槽 ===== */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(102,126,234,0.05) 8px, rgba(102,126,234,0.05) 10px),
+      repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(118,75,162,0.05) 8px, rgba(118,75,162,0.05) 10px),
+      linear-gradient(135deg, #e8eeff 0%, #f0e6ff 30%, #ffe8f0 60%, #e8f4ff 100%);
+    z-index: 0;
+  }
+
+  /* 大凹槽 - 整个窗口要拼入这里（初始隐藏） */
+  .bg-hole {
+    position: absolute;
+    width: 420px;
+    height: 250px;
+    background: #1a1a2e;
+    border-radius: 14px;
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.4);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  /* 拼图凸块 - 在窗口右侧下方模拟拼图形状 */
+  .bg-hole::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    bottom: 50px;
+    transform: translateY(50%);
+    width: 20px;
+    height: 60px;
+    border-radius: 10px;
+    background: #1a1a2e;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  /* 假凹槽 - 在拼图块右侧，大小与拼图块相同，欺骗用户 */
+  .fake-hole {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 68px;
+    height: 52px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .fake-hole::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  /* 小凹槽 - Phase 2 真实目标，固定不动，在窗口上方 */
+  .small-hole {
+    position: fixed;
+    width: 68px;
+    height: 52px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px rgba(255,255,255,0.3);
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .small-hole::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  /* ===== 可移动窗口 ===== */
+  .captcha-window {
+    position: fixed;
+    width: 420px;
+    height: 250px;
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06);
+    z-index: 10;
+    overflow: visible;
+    transition: left 0.08s linear;
+  }
+
+  /* 拼图凸块 - 和背景凹槽互补 */
+  .captcha-window::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    bottom: 50px;
+    transform: translateY(50%);
+    width: 20px;
+    height: 60px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.78);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 0 0 2px rgba(102,126,234,0.5);
+    z-index: -1;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(102,126,234,0.05) 8px, rgba(102,126,234,0.05) 10px),
+      repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(118,75,162,0.05) 8px, rgba(118,75,162,0.05) 10px),
+      linear-gradient(135deg, #e8eeff 0%, #f0e6ff 30%, #ffe8f0 60%, #e8f4ff 100%);
+  }
+
+  .window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.5);
+    border-radius: 14px 14px 0 0;
+  }
+
+  .window-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .window-title .dot {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+  }
+
+  .refresh-btn {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.25s;
+    color: #666;
+    font-size: 12px;
+    line-height: 1;
+    z-index: 6;
+  }
+  .refresh-btn:hover { background: #f5f5f5; border-color: #bbb; }
+  .refresh-btn:active { transform: scale(0.95); }
+
+  .captcha-tagline {
+    position: absolute;
+    bottom: 8px;
+    left: 80px;
+    font-size: 14px;
+    color: #999;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* 拼图块 - 保留小块提示 */
+  .piece-area {
+    position: relative;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 18px;
+  }
+  .puzzle-piece {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 68px;
+    height: 52px;
+    border-radius: 6px;
+    z-index: 5;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 0 0 3px rgba(102,126,234,0.5);
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(102,126,234,0.05) 8px, rgba(102,126,234,0.05) 10px),
+      repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(118,75,162,0.05) 8px, rgba(118,75,162,0.05) 10px),
+      linear-gradient(135deg, #e8eeff 0%, #f0e6ff 30%, #ffe8f0 60%, #e8f4ff 100%);
+  }
+  .puzzle-piece::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 0 0 3px rgba(102,126,234,0.5);
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(102,126,234,0.05) 8px, rgba(102,126,234,0.05) 10px),
+      repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(118,75,162,0.05) 8px, rgba(118,75,162,0.05) 10px),
+      linear-gradient(135deg, #e8eeff 0%, #f0e6ff 30%, #ffe8f0 60%, #e8f4ff 100%);
+    background-position: var(--bg-pos-x, 0) var(--bg-pos-y, 0);
+    z-index: -1;
+  }
+
+  /* 滑块区域 - 在窗口底部 */
+  .slider-area {
+    padding: 8px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .slider-track {
+    position: relative;
+    width: 100%;
+    height: 48px;
+    background: #ececec;
+    border-radius: 24px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 24px;
+    transition: width 0.1s ease;
+    pointer-events: none;
+  }
+  .slider-fill.matched {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+  }
+
+  .slider-thumb {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 2px rgba(102,126,234,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: box-shadow 0.3s, background 0.3s;
+    z-index: 2;
+  }
+  .slider-thumb:active { cursor: grabbing; }
+  .slider-thumb.near-target {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px rgba(34,197,94,0.5);
+    background: #f0fdf4;
+  }
+  .slider-thumb.matched {
+    box-shadow: 0 2px 12px rgba(34,197,94,0.4), 0 0 0 3px rgba(34,197,94,0.6);
+    background: #dcfce7;
+  }
+  .slider-thumb svg {
+    width: 18px;
+    height: 18px;
+    color: #667eea;
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+  .slider-thumb.near-target svg { color: #22c55e; }
+
+  .slider-hint {
+    font-size: 12px;
+    color: #aaa;
+    transition: color 0.3s;
+    text-align: center;
+    width: 100%;
+  }
+  .slider-hint.success { color: #22c55e; }
+
+  /* 窗口状态 */
+  .captcha-window.matched {
+    border-color: #22c55e;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25), 0 0 30px rgba(34,197,94,0.3);
+  }
+
+  /* 成功粒子 */
+  .particles-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: particleBurst 0.8s ease-out forwards;
+  }
+  @keyframes particleBurst {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0); }
+  }
+
+  /* 响应式 */
+  @media (max-width: 460px) {
+    .captcha-window { width: 94vw; height: auto; }
+    .bg-hole { width: 94vw; height: 230px; }
+    .piece-area { height: 70px; padding: 0 10px; }
+    .slider-area { padding: 6px 10px 12px; }
+    .puzzle-piece { width: 56px; height: 44px; }
+    .puzzle-piece::after { right: -11px; width: 16px; height: 16px; }
+    .slider-track { height: 42px; }
+    .slider-thumb { width: 34px; height: 34px; top: 4px; }
+    .captcha-window::after, .bg-hole::after {
+      right: -12px; width: 16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- 固定背景层 -->
+<div class="bg-layer" id="bgLayer">
+  <div class="bg-hole" id="bgHole"></div>
+</div>
+
+<!-- 小凹槽 - Phase 2 目标，固定于屏幕 -->
+<div class="small-hole" id="smallHole"></div>
+
+<!-- 可移动窗口（整个窗口就是拼图块） -->
+<div class="captcha-window" id="captchaWindow">
+  <div class="window-header">
+    <div class="window-title">
+      <span class="dot">✓</span>
+      请完成滑块验证
+    </div>
+  </div>
+  <div class="piece-area">
+    <div class="puzzle-piece" id="puzzlePiece"></div>
+    <div class="fake-hole"></div>
+  </div>
+  <div class="slider-area">
+    <div class="slider-track" id="sliderTrack">
+      <div class="slider-fill" id="sliderFill"></div>
+      <div class="slider-thumb" id="sliderThumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+    </div>
+    <div class="slider-hint" id="sliderHint">拖动滑块完成拼图</div>
+  </div>
+  <button class="refresh-btn" id="refreshBtn">↻ 刷新</button>
+  <span class="captcha-tagline">双重认证，真假难辨，真正的防人机认证</span>
+</div>
+
+<!-- 粒子层 -->
+<div class="particles-container" id="particles"></div>
+
+<script>
+(function() {
+  // === DOM 引用 ===
+  const bgLayer    = document.getElementById('bgLayer');
+  const bgHole     = document.getElementById('bgHole');
+  const captchaWindow = document.getElementById('captchaWindow');
+  const puzzlePiece  = document.getElementById('puzzlePiece');
+  const sliderTrack  = document.getElementById('sliderTrack');
+  const sliderFill   = document.getElementById('sliderFill');
+  const sliderThumb  = document.getElementById('sliderThumb');
+  const sliderHint   = document.getElementById('sliderHint');
+  const particles    = document.getElementById('particles');
+  const refreshBtn   = document.getElementById('refreshBtn');
+  const fakeHole     = document.querySelector('.fake-hole');
+  const smallHole    = document.getElementById('smallHole');
+
+  // === 配置 ===
+  const WINDOW_W = 420;
+  const WINDOW_H = 250;
+  const TOLERANCE  = 5;
+  const NEAR_ZONE  = 28;
+  const HOLE_DELAY = 500; // 真实凹槽延迟 0.5 秒才出现
+
+  // === 状态 ===
+  let phase = 1; // 1 = 大窗口拼入大凹槽, 2 = 小拼图块拼入小凹槽
+  let holeX = 0, holeY = 0;
+  let windowLeft = 0, windowTop = 0;
+  let targetWindowLeft = 0;
+  let winMinLeft = 0, winMaxLeft = 0;
+  let sliderMax  = 0;
+  let sliderValue = 0;
+  let dragging = false;
+  let verified = false;
+  let phaseLocked = false;  // Phase 1 成功后锁定，防止过渡期间拖动
+  let startMouseX = 0;
+  let startSliderValue = 0;
+  let dragStartTime = 0; // 开始拖动的时间戳
+
+  // Phase 2 状态
+  let smallHoleX = 0, smallHoleY = 0;  // 小凹槽在屏幕上的绝对位置
+  let pieceBaseX = 0;                   // 拼图块在窗口内的起始 X
+  let pieceMoveRange = 0;               // 拼图块可移动的范围（px）
+  let pieceTargetX = 0;                 // 拼图块在窗口内的目标 X（相对窗口）
+  let pieceCurrentX = 0;                // 拼图块在窗口内的当前 X
+
+  // === 拼图块在窗口内的坐标 ===
+  function getPieceInWindow() {
+    const pieceRect = puzzlePiece.getBoundingClientRect();
+    const winRect   = captchaWindow.getBoundingClientRect();
+    return {
+      x: pieceRect.left - winRect.left,
+      y: pieceRect.top - winRect.top
+    };
+  }
+
+  // === 初始化 ===
+  function init() {
+    verified = false;
+    phaseLocked = false;
+    dragging = false;
+    sliderValue = 0;
+    dragStartTime = 0;
+    phase = 1;
+
+    const winW = captchaWindow.clientWidth;
+    const winH = captchaWindow.clientHeight;
+
+    // 滑块最大范围（先算，因为窗口范围要跟它 1:1）
+    sliderMax = sliderTrack.clientWidth - sliderThumb.clientWidth;
+
+    // 屏幕安全范围
+    const screenMin = 10;
+    const screenMax = window.innerWidth - winW - 10;
+
+    // 窗口移动范围 = 滑块范围（1:1 映射，鼠标不飞）
+    const moveRange = sliderMax;
+
+    // 随机选择窗口起始位置（保证目标在范围内）
+    // 目标位置大约在滑块 55%~85% 处
+    const targetFrac = 0.55 + Math.random() * 0.30;
+    const maxStart = screenMax - moveRange;
+
+    if (maxStart <= screenMin) {
+      winMinLeft = screenMin;
+      winMaxLeft = screenMax;
+    } else {
+      winMinLeft = screenMin + Math.random() * (maxStart - screenMin);
+      winMaxLeft = winMinLeft + moveRange;
+      if (winMaxLeft > screenMax) {
+        winMaxLeft = screenMax;
+        winMinLeft = screenMax - moveRange;
+      }
+    }
+
+    // 目标位置：窗口要拼入凹槽的 left
+    targetWindowLeft = winMinLeft + targetFrac * (winMaxLeft - winMinLeft);
+    holeX = targetWindowLeft;
+
+    // 垂直位置：限制在屏幕 15%~70% 之间，不高不低
+    const marginY = 120;
+    const maxY = window.innerHeight - marginY - WINDOW_H;
+    holeY = marginY + Math.random() * (maxY - marginY);
+    windowTop = holeY;
+
+    // 初始窗口位置（最左侧）
+    windowLeft = winMinLeft;
+
+    // 假凹槽随机水平位置（在拼图块右侧，窗口内）
+    const pieceAreaW = winW - 36;
+    const fakeMinX = 80;
+    const fakeMaxX = pieceAreaW - 68;
+    const fakeX = fakeMinX + Math.random() * (fakeMaxX - fakeMinX);
+    fakeHole.style.left = fakeX + 'px';
+
+    // 设置凹槽位置
+    bgHole.style.left = holeX + 'px';
+    bgHole.style.top  = holeY + 'px';
+
+    // 设置窗口位置
+    captchaWindow.style.left = windowLeft + 'px';
+    captchaWindow.style.top  = windowTop  + 'px';
+
+    // === Phase 2 预计算（仅初始化拼图块状态，小凹槽位置在 enterPhase2 中动态计算） ===
+    pieceBaseX = 0;
+    pieceCurrentX = 0;
+    puzzlePiece.style.left = '0px';
+
+    updateSliderUI();
+    updatePieceBackground();
+    updateNearIndicator();
+    updateRealHoleVisibility();
+
+    // 重置UI
+    captchaWindow.classList.remove('matched');
+    captchaWindow.style.borderColor = '';
+    captchaWindow.style.boxShadow = '';
+    sliderFill.classList.remove('matched');
+    sliderThumb.classList.remove('matched', 'near-target');
+    sliderHint.textContent = '拖动滑块完成拼图';
+    sliderHint.className = 'slider-hint';
+    particles.innerHTML = '';
+    bgHole.style.opacity = '0';
+    smallHole.style.opacity = '0';
+  }
+
+  // === 更新拼图块背景 ===
+  function updatePieceBackground() {
+    const pw = getPieceInWindow();
+    let pieceAbsX, pieceAbsY;
+
+    if (phase === 2) {
+      // Phase 2: 拼图块在窗口内移动，与固定的小凹槽对齐
+      // pw.x 已包含 pieceCurrentX 偏移（因为拼图块 left 样式改变了其位置）
+      pieceAbsX = windowLeft + pw.x;
+      pieceAbsY = windowTop + pw.y;
+      // 拼图块背景偏移 = 目标位置 - 拼图块当前位置，使拼图块显示出凹槽处的背景图案
+      const bgPosX = smallHoleX - pieceAbsX;
+      const bgPosY = smallHoleY - pieceAbsY;
+      puzzlePiece.style.backgroundPosition = bgPosX + 'px ' + bgPosY + 'px';
+      puzzlePiece.style.setProperty('--bg-pos-x', bgPosX + 'px');
+      puzzlePiece.style.setProperty('--bg-pos-y', bgPosY + 'px');
+    } else {
+      // Phase 1: 窗口移动，与大凹槽对齐
+      pieceAbsX = windowLeft + pw.x;
+      pieceAbsY = windowTop  + pw.y;
+      const bgPosX = holeX - pieceAbsX;
+      const bgPosY = holeY - pieceAbsY;
+      puzzlePiece.style.backgroundPosition = bgPosX + 'px ' + bgPosY + 'px';
+      puzzlePiece.style.setProperty('--bg-pos-x', bgPosX + 'px');
+      puzzlePiece.style.setProperty('--bg-pos-y', bgPosY + 'px');
+    }
+  }
+
+  // === Phase 2: 更新拼图块在窗口内的位置 ===
+  function updatePiecePosition() {
+    puzzlePiece.style.left = pieceCurrentX + 'px';
+    updatePieceBackground();
+  }
+
+  // === 更新滑块UI ===
+  function updateSliderUI() {
+    const ratio = (windowLeft - winMinLeft) / (winMaxLeft - winMinLeft);
+    const clamped = Math.max(0, Math.min(1, ratio));
+    sliderValue = clamped * sliderMax;
+    sliderThumb.style.left = sliderValue + 'px';
+    const fillPct = ((sliderValue + sliderThumb.clientWidth / 2) / sliderTrack.clientWidth) * 100;
+    sliderFill.style.width = fillPct + '%';
+  }
+
+  // === 接近目标指示 ===
+  function updateNearIndicator() {
+    let dist;
+    if (phase === 2) {
+      const pw = getPieceInWindow();
+      const pieceAbsX = windowLeft + pw.x;
+      dist = Math.abs(pieceAbsX - smallHoleX);
+    } else {
+      dist = Math.abs(windowLeft - targetWindowLeft);
+    }
+    if (dist <= NEAR_ZONE) {
+      sliderThumb.classList.add('near-target');
+    } else {
+      sliderThumb.classList.remove('near-target');
+    }
+  }
+
+  // === 真实凹槽逐渐显现（延迟 1 秒后才开始） ===
+  function updateRealHoleVisibility() {
+    if (phase !== 1) return;
+    const elapsed = Date.now() - dragStartTime;
+    if (elapsed < HOLE_DELAY) {
+      bgHole.style.opacity = '0';
+      return;
+    }
+    const dist = Math.abs(windowLeft - targetWindowLeft);
+    const maxDist = winMaxLeft - winMinLeft;
+    const opacity = 1 - Math.min(1, dist / (maxDist * 0.6));
+    bgHole.style.opacity = Math.max(0, opacity);
+  }
+
+  // === 检查对齐 ===
+  function checkAlignment() {
+    if (phase === 2) {
+      const pw = getPieceInWindow();
+      const pieceAbsX = windowLeft + pw.x;
+      return Math.abs(pieceAbsX - smallHoleX) <= TOLERANCE;
+    }
+    return Math.abs(windowLeft - targetWindowLeft) <= TOLERANCE;
+  }
+
+  // === 滑块位置 → 窗口位置 ===
+  function sliderToWindowLeft(val) {
+    const ratio = val / sliderMax;
+    return winMinLeft + ratio * (winMaxLeft - winMinLeft);
+  }
+
+  // === 滑块位置 → 拼图块位置（Phase 2） ===
+  function sliderToPieceX(val) {
+    const ratio = val / sliderMax;
+    return pieceBaseX + ratio * pieceMoveRange;
+  }
+
+  // === 窗口位置 → 滑块位置 ===
+  function windowLeftToSlider() {
+    const ratio = (windowLeft - winMinLeft) / (winMaxLeft - winMinLeft);
+    return Math.max(0, Math.min(1, ratio)) * sliderMax;
+  }
+
+  // === Phase 1 完成 → 进入 Phase 2 ===
+  function enterPhase2() {
+    phase = 2;
+    phaseLocked = false;
+    dragging = false;
+
+    // 锁定窗口位置
+    windowLeft = targetWindowLeft;
+    captchaWindow.style.left = windowLeft + 'px';
+    captchaWindow.style.transition = 'left 0.08s linear';
+    captchaWindow.classList.add('matched');
+    bgHole.style.opacity = '1';
+
+    // 拼图块复位到起始位置
+    pieceCurrentX = 0;
+    puzzlePiece.style.left = '0px';
+
+    // === 基于拼图块当前实际位置，动态计算小凹槽位置 ===
+    const pw = getPieceInWindow();
+    // 拼图块在屏幕上的实际位置
+    const pieceScreenX = windowLeft + pw.x;
+    const pieceScreenY = windowTop + pw.y;
+    // 拼图块在窗口内的自然 X（left: 0 时）
+    const naturalX = pw.x;
+
+    // 拼图块可移动范围
+    pieceMoveRange = captchaWindow.clientWidth - naturalX - puzzlePiece.clientWidth - 10;
+
+    // 小凹槽偏移（随机，距离拼图块至少 40px，在可到达范围内）
+    const offsetMin = 40;
+    const offsetMax = pieceMoveRange;
+    const offset = offsetMin + Math.random() * (offsetMax - offsetMin);
+
+    // 小凹槽屏幕位置 = 拼图块当前位置 + 偏移
+    smallHoleX = pieceScreenX + offset;
+    smallHoleY = pieceScreenY;
+
+    // 更新小凹槽 DOM 位置
+    smallHole.style.left = smallHoleX + 'px';
+    smallHole.style.top  = smallHoleY + 'px';
+
+    // 拼图块目标偏移（滑块需要移动的距离）
+    pieceTargetX = offset;
+
+    // 显示小凹槽
+    smallHole.style.opacity = '1';
+
+    updatePieceBackground();
+
+    // 滑块复位
+    sliderValue = 0;
+    sliderThumb.style.left = '0px';
+    sliderFill.style.width = '0%';
+    sliderFill.classList.remove('matched');
+    sliderThumb.classList.remove('matched', 'near-target');
+
+    // 提示文字更新
+    sliderHint.textContent = '请将拼图块移入凹槽';
+    sliderHint.className = 'slider-hint';
+
+    // 高亮窗口边框
+    captchaWindow.style.borderColor = '#22c55e';
+    captchaWindow.style.boxShadow = '0 12px 40px rgba(0,0,0,0.25), 0 0 30px rgba(34,197,94,0.3)';
+  }
+
+  // Phase 1 对齐成功，先显示提示
+  function onPhase1Success() {
+    dragging = false;
+    phaseLocked = true;
+    captchaWindow.style.transition = 'left 0.08s linear';
+
+    // 锁定窗口到位
+    windowLeft = targetWindowLeft;
+    captchaWindow.style.left = windowLeft + 'px';
+    bgHole.style.opacity = '1';
+    captchaWindow.classList.add('matched');
+    captchaWindow.style.borderColor = '#22c55e';
+    captchaWindow.style.boxShadow = '0 12px 40px rgba(0,0,0,0.25), 0 0 30px rgba(34,197,94,0.3)';
+
+    // 滑块填满
+    sliderFill.classList.add('matched');
+    sliderThumb.classList.add('matched');
+    sliderThumb.classList.remove('near-target');
+
+    // 提示验证成功
+    sliderHint.textContent = '✓ 验证成功';
+    sliderHint.className = 'slider-hint success';
+
+    // 1 秒后自动进入 Phase 2
+    setTimeout(() => {
+      sliderFill.classList.remove('matched');
+      sliderThumb.classList.remove('matched');
+      enterPhase2();
+    }, 1000);
+  }
+
+  // === Phase 2 完成 → 最终验证成功 ===
+  function onFinalSuccess() {
+    if (verified) return;
+    verified = true;
+
+    // 直接使用 pieceTargetX（= offset），它基于 Phase 2 启动时的实际位置计算
+    pieceCurrentX = pieceTargetX;
+    puzzlePiece.style.left = pieceCurrentX + 'px';
+    updatePieceBackground();
+
+    sliderFill.classList.add('matched');
+    sliderThumb.classList.add('matched');
+    sliderThumb.classList.remove('near-target');
+
+    sliderHint.textContent = '✓ 验证通过';
+    sliderHint.className = 'slider-hint success';
+    smallHole.style.opacity = '1';
+
+    spawnParticles();
+  }
+
+  // === 粒子效果 ===
+  function spawnParticles() {
+    const colors = ['#667eea','#764ba2','#22c55e','#f59e0b','#ef4444','#3b82f6','#ec4899'];
+    const frag = document.createDocumentFragment();
+    const cx = holeX + WINDOW_W / 2;
+    const cy = holeY + WINDOW_H / 2;
+
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 60 + Math.random() * 120;
+      p.style.cssText = `
+        left: ${cx}px; top: ${cy}px;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        --dx: ${Math.cos(angle)*dist}px;
+        --dy: ${Math.sin(angle)*dist}px;
+        animation-duration: ${0.5 + Math.random()*0.6}s;
+      `;
+      frag.appendChild(p);
+    }
+    particles.appendChild(frag);
+    setTimeout(() => { particles.innerHTML = ''; }, 1000);
+  }
+
+  // === 事件处理 ===
+  function getEventX(e) {
+    if (e.touches && e.touches.length > 0) return e.touches[0].clientX;
+    if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
+    return e.clientX;
+  }
+
+  function onSliderStart(e) {
+    if (verified || phaseLocked) return;
+    e.preventDefault();
+    dragging = true;
+    startMouseX = getEventX(e);
+    startSliderValue = sliderValue;
+    dragStartTime = Date.now();
+    if (phase === 1) {
+      captchaWindow.style.transition = 'left 0.04s linear';
+    }
+  }
+
+  function onSliderMove(e) {
+    if (!dragging || verified || phaseLocked) return;
+    e.preventDefault();
+    const mx = getEventX(e);
+    const dx = mx - startMouseX;
+    let newVal = startSliderValue + dx;
+    newVal = Math.max(0, Math.min(sliderMax, newVal));
+    sliderValue = newVal;
+
+    sliderThumb.style.left = sliderValue + 'px';
+    sliderFill.style.width = ((sliderValue + sliderThumb.clientWidth / 2) / sliderTrack.clientWidth * 100) + '%';
+
+    if (phase === 2) {
+      // Phase 2: 滑块控制拼图块在窗口内移动
+      pieceCurrentX = sliderToPieceX(sliderValue);
+      updatePiecePosition();
+    } else {
+      // Phase 1: 滑块控制窗口移动
+      windowLeft = sliderToWindowLeft(sliderValue);
+      captchaWindow.style.left = windowLeft + 'px';
+      updatePieceBackground();
+      updateRealHoleVisibility();
+    }
+
+    updateNearIndicator();
+  }
+
+  function onSliderEnd(e) {
+    if (!dragging) return;
+    dragging = false;
+
+    if (phase === 1) {
+      captchaWindow.style.transition = 'left 0.08s linear';
+      if (checkAlignment()) {
+        onPhase1Success();
+      } else {
+        // 未对齐回弹
+        captchaWindow.style.transition = 'left 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        sliderValue = 0;
+        windowLeft = winMinLeft;
+        captchaWindow.style.left = windowLeft + 'px';
+        sliderThumb.style.left = '0px';
+        sliderFill.style.width = '0%';
+        sliderThumb.classList.remove('near-target');
+        updatePieceBackground();
+        updateRealHoleVisibility();
+        setTimeout(() => {
+          captchaWindow.style.transition = 'left 0.08s linear';
+        }, 450);
+      }
+    } else {
+      // Phase 2: 检测拼图块是否对齐小凹槽
+      if (checkAlignment()) {
+        onFinalSuccess();
+      } else {
+        // 未对齐回弹
+        sliderValue = 0;
+        pieceCurrentX = 0;
+        sliderThumb.style.left = '0px';
+        sliderFill.style.width = '0%';
+        sliderThumb.classList.remove('near-target');
+        updatePiecePosition();
+      }
+    }
+  }
+
+  // === 事件绑定 ===
+  sliderThumb.addEventListener('mousedown', onSliderStart);
+  sliderThumb.addEventListener('touchstart', onSliderStart, { passive: false });
+
+  window.addEventListener('mousemove', onSliderMove);
+  window.addEventListener('touchmove', onSliderMove, { passive: false });
+
+  window.addEventListener('mouseup', onSliderEnd);
+  window.addEventListener('touchend', onSliderEnd);
+  window.addEventListener('touchcancel', onSliderEnd);
+
+  sliderThumb.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+  // 刷新按钮
+  refreshBtn.addEventListener('click', () => {
+    captchaWindow.style.transition = 'left 0.08s linear';
+    init();
+  });
+
+  // 响应式
+  window.addEventListener('resize', () => {
+    sliderMax = sliderTrack.clientWidth - sliderThumb.clientWidth;
+    init();
+  });
+
+  // 启动
+  init();
+})();
+</script>
+</body>
+</html>
